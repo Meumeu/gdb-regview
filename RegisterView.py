@@ -20,8 +20,8 @@ from os import path
 
 class RegisterView:
   
-  def adapt_elements_to_peripheral(self, elements, new_peripheral_name, new_base_address)
-    new_elements = copy.deepcopy(element) 
+  def adapt_elements_to_peripheral(self, elements, new_peripheral_name, new_base_address):
+    new_elements = copy.deepcopy(elements) 
     for r in new_elements.findall('.//register'):
       register_name = r.find('name').text
       fullname = new_peripheral_name + '_' + register_name
