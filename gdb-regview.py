@@ -64,5 +64,5 @@ RegviewLoadSvdCommand()
 RegviewShowCommand()
 
 if __name__ == '__main__':
-  print 'Loaded!', __file__
+  print 'Loaded', __file__
   print 'Type "regview <tab>" to see available commands.'

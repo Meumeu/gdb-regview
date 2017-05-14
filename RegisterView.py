@@ -17,6 +17,48 @@ class RegisterView:
       r.set('address', hex(int(new_base_address,16) + int(offset,16)))
    
     return new_elements
+
+  def parse_svd_peripheral(self, peripheral, peripherals):
+    peripheral_name = peripheral.find('name').text
+    base_address = peripheral.find('baseAddress').text
+    try:
+      derived_from = peripheral.attrib['derivedFrom']
+      derive_matches = filter(lambda x: x.find('name').text == derived_from, peripherals)
+      if len(derive_matches) <= 0:
+        error_msg = "ERROR could not find peripheral %s info derived from %s" %(peripheral_name, derived_from)
+        raise Exception(error_msg)
+
+      # Create a duplicate in this peripheral
+      new_elements = self.adapt_elements_to_peripheral(derive_matches[0], peripheral_name, base_address)
+      peripheral.insert(0, new_elements)
+        
+      # No need to do anything else - complete copy has been made
+      return 
+
+    except KeyError:
+      # Not derived from anything... proceed
+      pass
+
+    for r in peripheral.findall('.//register'):
+      register_name = r.find('name').text
+      fullname = peripheral_name + '_' + register_name
+      r.set('fullname', fullname) 
+        
+      # Calculate absolute address
+      offset = r.find('addressOffset').text 
+      r.set('address', hex(int(base_address,16) + int(offset,16)))
+      
+      for f in r.findall('.//field'):
+
+        # Add as a child of the register 
+        adapted_field = ElementTree.Element("field")
+
+        adapted_field.attrib['bitlength'] = f.find('bitWidth').text
+        adapted_field.attrib['bitoffset'] = f.find('bitOffset').text
+        adapted_field.attrib['name'] = f.find('name').text
+        adapted_field.attrib['description'] = f.find('description').text.replace("\n              ", "")
+
+        r.insert(0, adapted_field)
  
   def load_svd_definitions(self, svd_file):
     self.tree = ElementTree.ElementTree()
@@ -26,46 +68,10 @@ class RegisterView:
     peripherals = self.tree.findall('.//peripheral')
 
     for peripheral in peripherals:
-      peripheral_name = peripheral.find('name').text
-      base_address = peripheral.find('baseAddress').text
-      try:
-        derived_from = peripheral.attrib['derivedFrom']
-        derive_matches = filter(lambda x: x.find('name').text == derived_from, peripherals)
-        if len(derive_matches) <= 0:
-          error_msg = "ERROR could not find peripheral %s info derived from %s" %(peripheral_name, derived_from)
-          raise Exception(error_msg)
-
-        # Create a duplicate in this peripheral
-        new_elements = self.adapt_elements_to_peripheral(derive_matches[0], peripheral_name, base_address)
-        peripheral.insert(0, new_elements)
-        
-        # No need to do anything else for this peripheral
-        continue
-
-      except KeyError:
-        # Not derived from anything... proceed
-        pass
-
-      for r in peripheral.findall('.//register'):
-        register_name = r.find('name').text
-        fullname = peripheral_name + '_' + register_name
-        r.set('fullname', fullname) 
-        
-        # Calculate absolute address
-        offset = r.find('addressOffset').text 
-        r.set('address', hex(int(base_address,16) + int(offset,16)))
-      
-        for f in r.findall('.//field'):
-          new_attribs = {'bitlength':f.find('bitWidth').text,
-                         'bitoffset':f.find('bitOffset').text,
-                         'name':f.find('name').text,
-                         'description':f.find('description').text};
-
-          # Shove it back into the tree 
-          ElementTree.SubElement(r, 'field', new_attribs);
+      self.parse_svd_peripheral(peripheral, peripherals)
 
     self.reg_defs = self.tree.getiterator('register')
-    print "Loaded register definitions from SVD:", path.expanduser(defs_file)
+    print "Loaded register definitions from SVD:", path.expanduser(svd_file)
 
   def load_definitions(self, defs_file):
     self.tree = ElementTree.ElementTree()
@@ -104,7 +110,7 @@ class RegisterView:
   def print_reg(self, name, val):
     print "%s (*0x%08X) = 0x%08X\n" % (name, self.get_reg_address(name), val)
     reg = self.get_reg_element(name)
-    for field in reg.getchildren():
+    for field in reg.findall('./field'):
       bit_len = int(field.attrib['bitlength'])
       bit_offset = int(field.attrib['bitoffset'])
       bit_name = field.attrib['name']
