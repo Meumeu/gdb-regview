@@ -27,6 +27,8 @@ A sample of STM32 register definitions are included in the `./defs` directory. T
 
 Register definitions loaded with "regview loadsvd" use the CMSIS System View Description format (CMSIS-SVD). See: [http://www.keil.com/pack/doc/CMSIS/SVD/html/index.html] (http://www.keil.com/pack/doc/CMSIS/SVD/html/index.html)
 
+A sample of an SVD is included in the `./svds` directory.
+
 ### Register Name Modification
 
 In order to make accessing registers for groups of peripherals, the register name is modified compared to how it is available in the embsysregview xml files. Rather than `periph_registername`, the registers are referenced as `registergroup_registername`.
