@@ -21,11 +21,11 @@ Tab completion is enabled for register names. One may wish to automatically load
 
 Register definitions loaded with "regview load" use the format defined by the Eclipse Embedded Systems Register View [(http://sourceforge.net/projects/embsysregview/)](http://sourceforge.net/projects/embsysregview/). In fact, it is recommended to use the register definition xml files included in this project.
 
-A sample of STM32 register definitions are included in the `./defs` directory. The complete collection is available here: [(http://sourceforge.net/p/embsysregview/code/HEAD/tree/trunk/org.eclipse.cdt.embsysregview.data/data/)](http://sourceforge.net/p/embsysregview/code/HEAD/tree/trunk/org.eclipse.cdt.embsysregview.data/data/)
+A sample of STM32 register definitions are included in the `./defs` directory. The complete collection is available here: [http://sourceforge.net/p/embsysregview/code/HEAD/tree/trunk/org.eclipse.cdt.embsysregview.data/data/](http://sourceforge.net/p/embsysregview/code/HEAD/tree/trunk/org.eclipse.cdt.embsysregview.data/data/)
 
 ### Register Definitions (SVD)
 
-Register definitions loaded with "regview loadsvd" use the CMSIS System View Description format (CMSIS-SVD). See: [http://www.keil.com/pack/doc/CMSIS/SVD/html/index.html] (http://www.keil.com/pack/doc/CMSIS/SVD/html/index.html)
+Register definitions loaded with "regview loadsvd" use the CMSIS System View Description format (CMSIS-SVD). See: [http://www.keil.com/pack/doc/CMSIS/SVD/html/index.html](http://www.keil.com/pack/doc/CMSIS/SVD/html/index.html)
 
 A sample of an SVD is included in the `./svds` directory.
 
