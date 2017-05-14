@@ -1,32 +1,17 @@
 import xml.etree.ElementTree as ElementTree
 import copy
-#from xml.etree.ElementTree import ElementTree
 from os import path
 
-# This is just here for reference...
-#
-#  def print_reg(self, name, val):
-#    print "%s (*0x%08X) = 0x%08X\n" % (name, self.get_reg_address(name), val)
-#    reg = self.get_reg_element(name)
-#    for field in reg.getchildren():
-#      bit_len = int(field.attrib['bitlength'])
-#      bit_offset = int(field.attrib['bitoffset'])
-#      bit_name = field.attrib['name']
-#      description = field.attrib.get('description', 'no description')
-#      print "%s\t0x%X\t\t%s" % (bit_name, self.extract_bits(val, bit_len, bit_offset), description)
-#
-# set('name', value) sets an attribute
-# SubElement(parent, tag, attrrib={}, **extra) adds sub element to parent
 
 class RegisterView:
   
   def adapt_elements_to_peripheral(self, elements, new_peripheral_name, new_base_address):
     new_elements = copy.deepcopy(elements) 
+    
     for r in new_elements.findall('.//register'):
       register_name = r.find('name').text
       fullname = new_peripheral_name + '_' + register_name
       r.set('fullname', fullname) 
-      print "d   %s" %(fullname)
       # Calculate absolute address
       offset = r.find('addressOffset').text 
       r.set('address', hex(int(new_base_address,16) + int(offset,16)))
@@ -43,18 +28,16 @@ class RegisterView:
     for peripheral in peripherals:
       peripheral_name = peripheral.find('name').text
       base_address = peripheral.find('baseAddress').text
-      print "peripheral name = %s" %(peripheral_name)
       try:
         derived_from = peripheral.attrib['derivedFrom']
-        elements = filter(lambda x: x.attrib['fullname'] == derived_from, self.tree.findall('.//peripheral'))
-        if len(elements) <= 0:
+        derive_matches = filter(lambda x: x.find('name').text == derived_from, peripherals)
+        if len(derive_matches) <= 0:
           error_msg = "ERROR could not find peripheral %s info derived from %s" %(peripheral_name, derived_from)
           raise Exception(error_msg)
 
         # Create a duplicate in this peripheral
-        print "derived!!"
-        new_elements = adapt_elements_to_peripherals(self, elements, peripheral_name, base_address)
-        peripheral.insert(new_elements)
+        new_elements = self.adapt_elements_to_peripheral(derive_matches[0], peripheral_name, base_address)
+        peripheral.insert(0, new_elements)
         
         # No need to do anything else for this peripheral
         continue
@@ -67,7 +50,6 @@ class RegisterView:
         register_name = r.find('name').text
         fullname = peripheral_name + '_' + register_name
         r.set('fullname', fullname) 
-        print "   %s" %(fullname)
         
         # Calculate absolute address
         offset = r.find('addressOffset').text 
@@ -83,6 +65,7 @@ class RegisterView:
           ElementTree.SubElement(r, 'field', new_attribs);
 
     self.reg_defs = self.tree.getiterator('register')
+    print "Loaded register definitions from SVD:", path.expanduser(defs_file)
 
   def load_definitions(self, defs_file):
     self.tree = ElementTree.ElementTree()
