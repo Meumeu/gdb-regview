@@ -14,7 +14,9 @@ class RegisterView:
       r.set('fullname', fullname) 
       # Calculate absolute address
       offset = r.find('addressOffset').text 
-      r.set('address', hex(int(new_base_address,16) + int(offset,16)))
+      hex_base = 16
+      new_address = int(new_base_address, hex_base) + int(offset, hex_base)
+      r.set('address', hex(new_address))
    
     return new_elements
 
@@ -46,7 +48,9 @@ class RegisterView:
         
       # Calculate absolute address
       offset = r.find('addressOffset').text 
-      r.set('address', hex(int(base_address,16) + int(offset,16)))
+      hex_base = 16
+      address = int(base_address, hex_base) + int(offset, hex_base)
+      r.set('address', hex(address))
       
       for f in r.findall('.//field'):
 
