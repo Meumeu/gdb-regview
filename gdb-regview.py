@@ -27,6 +27,17 @@ class RegviewLoadCommand(gdb.Command):
   def invoke(self, arg, from_tty):
     rv.load_definitions(arg)
 
+class RegviewLoadSvdCommand(gdb.Command):
+  "Load register definitions from SVD XML file."
+
+  def __init__(self):
+    super (RegviewLoadSvdCommand, self).__init__ ("regview loadsvd",
+      gdb.COMMAND_SUPPORT,
+      gdb.COMPLETE_FILENAME)
+
+  def invoke(self, arg, from_tty):
+    rv.load_svd_definitions(arg)
+
 class RegviewShowCommand(gdb.Command):
   "Show the value of a register."
 
@@ -49,6 +60,7 @@ class RegviewShowCommand(gdb.Command):
 
 RegviewPrefixCommand()
 RegviewLoadCommand()
+RegviewLoadSvdCommand()
 RegviewShowCommand()
 
 if __name__ == '__main__':
