@@ -2,6 +2,8 @@ import gdb
 import struct
 import sys
 import os
+import pdb
+import pprint
 
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 import RegisterView
@@ -16,6 +18,7 @@ class RegviewPrefixCommand (gdb.Command):
         gdb.COMMAND_SUPPORT,
         gdb.COMPLETE_NONE, True)
 
+
 class RegviewLoadCommand(gdb.Command):
   "Load register definitions from XML file."
 
@@ -27,6 +30,7 @@ class RegviewLoadCommand(gdb.Command):
   def invoke(self, arg, from_tty):
     rv.load_definitions(arg)
 
+
 class RegviewShowCommand(gdb.Command):
   "Show the value of a register."
 
@@ -35,21 +39,80 @@ class RegviewShowCommand(gdb.Command):
       gdb.COMMAND_SUPPORT)
 
   def invoke(self, arg, from_tty):
-    e = rv.get_reg_element(arg)
-    if e is None:
+    elts = rv.find_registers(arg)
+
+    # if the user includes a ? or * in the argument, we expand them here.
+    if (arg.find("?") != -1) or (arg.find("*") != -1):
+      elts.extend(rv.find_registers_glob(arg))
+
+    if len(elts) == 0:
       print "Unknown register %s" % arg
       return
-    addr = rv.get_reg_address(arg)
-    buff = gdb.inferiors()[0].read_memory(addr, 4)
-    val = struct.unpack("I", buff)[0]
-    rv.print_reg(arg, val)
+
+    for elt in elts:
+      print(elt)
 
   def complete(self, arg, from_tty):
-    return rv.find_registers(arg)
+    return [reg.get_fullname() for reg in rv.find_registers(arg)]
+
+
+class  RegviewSnapshotCommand(gdb.Command):
+  "Take a snapshot of the current register state."
+
+  def __init__(self):
+    super (RegviewSnapshotCommand, self).__init__ ("regview snapshot",
+      gdb.COMMAND_SUPPORT)
+
+  def invoke(self, arg, from_tty):
+    rv.snapshot()
+
+
+class  RegviewSaveSnapshotCommand(gdb.Command):
+  "Take a snapshot of the current register state and save it to a file."
+
+  def __init__(self):
+    super (RegviewSaveSnapshotCommand, self).__init__ ("regview savesnapshot",
+      gdb.COMMAND_SUPPORT,
+      gdb.COMPLETE_FILENAME)
+
+  def invoke(self, arg, from_tty):
+    rv.snapshot()
+    with open(arg, "w") as text_file:
+      text_file.write(pprint.pformat(rv.snap, indent=4))
+
+
+class  RegviewLoadSnapshotCommand(gdb.Command):
+  "Load a snapshot from a file."
+
+  def __init__(self):
+    super (RegviewLoadSnapshotCommand, self).__init__ ("regview loadsnapshot",
+      gdb.COMMAND_SUPPORT,
+      gdb.COMPLETE_FILENAME)
+
+  def invoke(self, arg, from_tty):
+    with open(arg, "r") as text_file:
+      data=text_file.read()
+      rv.snap = eval(data)
+
+
+class  RegviewDiffsCommand(gdb.Command):
+  "Diff of register state vs snapshot (from regivew snapshot)."
+
+  def __init__(self):
+    super (RegviewDiffsCommand, self).__init__ ("regview diffs",
+      gdb.COMMAND_SUPPORT)
+
+  def invoke(self, arg, from_tty):
+    rv.diff_vs_snapshot()
+
 
 RegviewPrefixCommand()
 RegviewLoadCommand()
 RegviewShowCommand()
+RegviewSnapshotCommand()
+RegviewDiffsCommand()
+RegviewSaveSnapshotCommand()
+RegviewLoadSnapshotCommand()
 
 if __name__ == '__main__':
   print 'Loaded', __file__
