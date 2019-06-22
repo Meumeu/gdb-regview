@@ -48,7 +48,7 @@ class RegviewShowCommand(gdb.Command):
   def invoke(self, arg, from_tty):
     e = rv.get_reg_element(arg)
     if e is None:
-      print "Unknown register %s" % arg
+      print("Unknown register %s" % arg)
       return
     addr = rv.get_reg_address(arg)
     buff = gdb.inferiors()[0].read_memory(addr, 4)
@@ -64,5 +64,5 @@ RegviewLoadSvdCommand()
 RegviewShowCommand()
 
 if __name__ == '__main__':
-  print 'Loaded', __file__
-  print 'Type "regview <tab>" to see available commands.'
+  print('Loaded', __file__)
+  print('Type "regview <tab>" to see available commands.')

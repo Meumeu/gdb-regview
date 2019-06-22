@@ -25,7 +25,7 @@ class RegisterView:
     base_address = peripheral.find('baseAddress').text
     try:
       derived_from = peripheral.attrib['derivedFrom']
-      derive_matches = filter(lambda x: x.find('name').text == derived_from, peripherals)
+      derive_matches = list(filter(lambda x: x.find('name').text == derived_from, peripherals))
       if len(derive_matches) <= 0:
         error_msg = "ERROR could not find peripheral %s info derived from %s" %(peripheral_name, derived_from)
         raise Exception(error_msg)
@@ -75,7 +75,7 @@ class RegisterView:
       self.parse_svd_peripheral(peripheral, peripherals)
 
     self.reg_defs = self.tree.getiterator('register')
-    print "Loaded register definitions from SVD:", path.expanduser(svd_file)
+    print("Loaded register definitions from SVD:", path.expanduser(svd_file))
 
   def load_definitions(self, defs_file):
     self.tree = ElementTree.ElementTree()
@@ -92,14 +92,14 @@ class RegisterView:
         r.set('fullname',fullname)
 
     self.reg_defs = self.tree.getiterator('register')
-    print "Loaded register definitions:", path.expanduser(defs_file)
+    print("Loaded register definitions:", path.expanduser(defs_file))
 
   def find_registers(self, reg_name):
     regs = filter(lambda x: x.attrib['fullname'].startswith(reg_name), self.reg_defs)
     return map(lambda x: x.attrib['fullname'], regs)
 
   def get_reg_element(self, reg_name):
-    elems = filter(lambda x: x.attrib['fullname'] == reg_name, self.reg_defs)
+    elems = list(filter(lambda x: x.attrib['fullname'] == reg_name, self.reg_defs))
     if len(elems) > 0:
       return elems[0]
     else:
@@ -112,12 +112,12 @@ class RegisterView:
     return eval(self.get_reg_element(name).attrib['address'])
 
   def print_reg(self, name, val):
-    print "%s (*0x%08X) = 0x%08X\n" % (name, self.get_reg_address(name), val)
+    print("%s (*0x%08X) = 0x%08X\n" % (name, self.get_reg_address(name), val))
     reg = self.get_reg_element(name)
     for field in reg.findall('./field'):
       bit_len = int(field.attrib['bitlength'])
       bit_offset = int(field.attrib['bitoffset'])
       bit_name = field.attrib['name']
       description = field.attrib.get('description', 'no description')
-      print "%s\t0x%X\t\t%s" % (bit_name, self.extract_bits(val, bit_len, bit_offset), description)
+      print("%s\t0x%X\t\t%s" % (bit_name, self.extract_bits(val, bit_len, bit_offset), description))
 
