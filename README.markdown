@@ -15,9 +15,49 @@ OR
 
 `(gdb) regview show REGISTER_NAME`
 
+`(gdb) regview show REGISTER_NAME_WITH_GLOB`
+
+For example:
+
+```
+regview show ADC?_CR1
+regview show DMA1_Channel*CCR*
+```
+
 Tab completion is enabled for register names. One may wish to automatically load the plugin and register definitions using a `.gdbinit` file.
 
-### Register Definitions (XML)
+### Snapshot
+
+To capture a snapshot within the current session
+
+`(gdb) regview snapshot`
+
+Later you can diff:
+
+`(gdb) regview diffs`
+
+which will give something list this:
+
+```
+ADC1_DR:DATA  0xe95->0xff7
+DMA1_Channel1_CNDTR1:NDT  0xc2->0xcc
+DMA1_Channel2_CNDTR2:NDT  0x41->0x3a
+DMA1_Channel3_CNDTR3:NDT  0x63->0x46
+GPIOA_IDR:IDR9  0x0->0x1
+TIM1_CCR1:CCR1  0x270->0x39a
+```
+
+You can also save the snapshot to a file:
+
+`(gdb) regview savesnapshot snap_test.txt`
+
+And load it later:
+
+`(gdb) regview loadsnapshot snap_test.txt`
+
+`(gdb) regview diffs`
+
+### Register Definitions
 
 Register definitions loaded with "regview load" use the format defined by the Eclipse Embedded Systems Register View [(http://sourceforge.net/projects/embsysregview/)](http://sourceforge.net/projects/embsysregview/). In fact, it is recommended to use the register definition xml files included in this project.
 
