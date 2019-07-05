@@ -1,3 +1,4 @@
+# kate: space-indent on; indent-width 2; replace-tabs on
 import gdb
 import struct
 import sys
@@ -7,6 +8,7 @@ import pprint
 
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 import RegisterView
+import I2C
 
 rv = RegisterView.RegisterView()
 
@@ -117,6 +119,43 @@ class  RegviewDiffsCommand(gdb.Command):
   def invoke(self, arg, from_tty):
     rv.diff_vs_snapshot()
 
+class I2CScan(gdb.Command):
+  "Scan an I2C bus for devices."
+  def __init__(self):
+    super (I2CScan, self).__init__ ("regview i2cscan",
+      gdb.COMMAND_SUPPORT)
+
+  def invoke(self, arg, from_tty):
+    dbg = I2C.I2CDebugger(rv, arg)
+    dbg.scan()
+
+  def complete(self, arg, from_tty):
+    i2c_registers = [ reg.get_fullname() for reg in rv.find_registers(arg) ]
+    i2c_controllers = [ reg.split('_')[0] for reg in i2c_registers if reg.startswith("I2C") and "_" in reg ]
+    return sorted(set(i2c_controllers))
+
+class I2CRead(gdb.Command):
+  "Read a register from an I2C device"
+  def __init__(self):
+    super (I2CRead, self).__init__ ("regview i2cread",
+      gdb.COMMAND_SUPPORT)
+
+  def invoke(self, arg, from_tty):
+    argv = gdb.string_to_argv(arg)
+    i2c_addr = int(argv[1], 0)
+    reg_addr = int(argv[2], 0)
+    if len(argv) > 3:
+      reg_size = int(argv[3], 0)
+    else:
+      reg_size = 1
+
+    dbg = I2C.I2CDebugger(rv, argv[0])
+    print("I2C bus {}, device {:#04x}".format(argv[0], i2c_addr))
+
+    for reg in range(reg_addr, reg_addr + reg_size):
+      value = dbg.read(i2c_addr, reg)
+
+      print("{:#04x}: {:#04x}".format(reg, value))
 
 RegviewPrefixCommand()
 RegviewLoadCommand()
@@ -126,6 +165,8 @@ RegviewSnapshotCommand()
 RegviewDiffsCommand()
 RegviewSaveSnapshotCommand()
 RegviewLoadSnapshotCommand()
+I2CScan()
+I2CRead()
 
 if __name__ == '__main__':
   print('Loaded', __file__)

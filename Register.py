@@ -1,3 +1,4 @@
+# kate: space-indent on; indent-width 4; replace-tabs on
 
 import gdb
 import struct
@@ -20,6 +21,10 @@ class Register:
         addr = self.get_address()
         buff = gdb.inferiors()[0].read_memory(addr, 4)
         return struct.unpack("I", buff)[0]
+
+    def set_val(self, value):
+        addr = self.get_address()
+        gdb.inferiors()[0].write_memory(addr, struct.pack("I", value))
 
     def extract_bits(self, val, bit_len, bit_offset):
         return (val >> bit_offset) & ((1<<bit_len) - 1)
