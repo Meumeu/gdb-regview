@@ -65,7 +65,7 @@ class RegisterView:
         adapted_field.attrib['bitlength'] = f.find('bitWidth').text
         adapted_field.attrib['bitoffset'] = f.find('bitOffset').text
         adapted_field.attrib['name'] = f.find('name').text
-        adapted_field.attrib['description'] = f.find('description').text.replace("\n              ", "")
+        adapted_field.attrib['description'] = f.find('description').text.replace("\n              ", " ")
 
         r.insert(0, adapted_field)
  
@@ -126,7 +126,7 @@ class RegisterView:
 
       val = reg.get_val()
 
-      for field in reg.get_elt().getchildren():
+      for field in [ i for i in reg.get_elt() if i.tag == 'field' ]:
         bit_len    = int(field.attrib['bitlength'])
         bit_offset = int(field.attrib['bitoffset'])
         bit_name   = field.attrib['name']
@@ -149,7 +149,7 @@ class RegisterView:
 
       val  = reg.get_val()
 
-      for field in reg.get_elt().getchildren():
+      for field in [ i for i in reg.get_elt() if i.tag == 'field' ]:
         bit_name = field.attrib['name']
         if (bit_name not in regstate):
           print("field {}:{} missing from snapshot".format(fullname, bit_name))
